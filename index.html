@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Testbed Quote — Home</title>
+<style>
+  :root{--bg:#0f1117;--panel:#161a22;--text:#e6e8ee;--muted:#9aa3b2;--accent:#7cd992;--line:#2a3140;--tile:#1a1f2b;--tileHover:#222937}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
+  header{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--line)}
+  h1{font-size:18px;margin:0}
+  .btn{background:var(--panel);border:1px solid var(--line);color:var(--text);padding:8px 12px;border-radius:10px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{border-color:var(--accent)}
+  main{max-width:1000px;margin:0 auto;padding:16px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+  .tile{display:flex;flex-direction:column;gap:6px;background:var(--tile);border:1px solid var(--line);border-radius:14px;padding:14px;min-height:96px;text-decoration:none;color:var(--text)}
+  .tile:hover{background:var(--tileHover);border-color:var(--accent)}
+  .title{font-weight:600}
+  .desc{color:var(--muted);font-size:12px}
+  .muted{color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Testbed Quote</h1>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <a class="btn" href="index2.html?tree=gas">Quick start: Gas</a>
+    <a class="btn" href="index2.html?tree=wah">Quick start: WAH</a>
+    <a class="btn" href="index2.html?tree=misc">Quick start: Misc</a>
+    <a class="btn" href="wpa.html">Proposed WPA</a>
+  </div>
+</header>
+
+<main>
+  <p class="muted">Choose a section to collect data. Tiles below are read from <code>data/tiles.json</code>.</p>
+  <div id="tiles" class="grid"></div>
+  <div id="error" class="muted" style="margin-top:12px"></div>
+</main>
+
+<script>
+(async function(){
+  const tilesEl = document.getElementById('tiles');
+  const errEl = document.getElementById('error');
+  try{
+    const res = await fetch('./data/tiles.json', {cache:'no-store'});
+    if(!res.ok) throw new Error(res.status+' '+res.statusText);
+    const json = await res.json();
+    (json.tiles||[]).forEach(t=>{
+      const a = document.createElement('a');
+      a.className = 'tile';
+      a.href = t.href || ('index2.html?tree='+encodeURIComponent(t.id));
+      a.innerHTML = `<div class="title">${t.title||t.id}</div>${t.desc?`<div class="desc">${t.desc}</div>`:''}`;
+      tilesEl.appendChild(a);
+    });
+  }catch(e){
+    errEl.textContent = 'Failed to load tiles.json: ' + e.message;
+  }
+})();
+</script>
+</body>
+</html>
