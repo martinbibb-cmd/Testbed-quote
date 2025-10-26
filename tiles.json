@@ -1,0 +1,10 @@
+{
+  "tiles": [
+    {
+      "id": "sample",
+      "title": "Sample",
+      "href": "index2.html?tree=sample",
+      "desc": "Demo tree"
+    }
+  ]
+}
