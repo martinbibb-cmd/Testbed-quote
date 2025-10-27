@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Pricebook Capture → Markdown</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  body{font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0}
+  header{position:sticky;top:0;background:#111;color:#fff;padding:12px 16px}
+  main{padding:16px;display:grid;gap:16px;grid-template-columns:1fr}
+  .card{border:1px solid #ddd;border-radius:10px;padding:12px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  label{font-size:12px;opacity:.8}
+  textarea{width:100%;min-height:160px;font-family:ui-monospace,Menlo,Consolas,monospace}
+  input,select,button{font:inherit}
+  .row{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+  .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+  .ok{color:#0a0}
+  .warn{color:#c70}
+</style>
+</head>
+<body>
+<header><strong>Pricebook Capture</strong> — paste PDF/CSV → Markdown table</header>
+<main>
+  <section class="card">
+    <div class="row">
+      <div>
+        <label>Target file</label><br/>
+        <select id="target">
+          <option>pricebook-md/core-packs.md</option>
+          <option>pricebook-md/boilers/regular-ng.md</option>
+          <option>pricebook-md/boilers/combi-ng.md</option>
+          <option>pricebook-md/boilers/combi-lpg.md</option>
+          <option>pricebook-md/flues/worcester.md</option>
+          <option>pricebook-md/controls/wiring-packs.md</option>
+          <option>pricebook-md/condensate.md</option>
+        </select>
+      </div>
+      <div>
+        <label>Header row (comma-separated)</label><br/>
+        <input id="headers" value="Code,Description,Price,LeadTime" style="width:100%"/>
+      </div>
+      <div>
+        <label>Delimiter</label><br/>
+        <select id="delim">
+          <option value="auto">Auto (tabs/commas/multi-spaces)</option>
+          <option value="tab">Tab</option>
+          <option value=",">Comma</option>
+          <option value="|">Pipe</option>
+          <option value="space">Multi-space</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <label>Paste rows here (from PDF copy, CSV, or spreadsheet):</label>
+    <textarea id="raw" placeholder="CBLR3600\tWorcester Greenstar 4000 25kW Combi NG\t25\t1176.65\t1"></textarea>
+    <div class="row">
+      <button id="convertBtn">Convert → Markdown</button>
+      <button id="downloadBtn" title="Download .md snippet you can paste into the target file">Download .md snippet</button>
+      <span id="status"></span>
+    </div>
+  </section>
+
+  <section class="card">
+    <label>Markdown table (copy/paste into the target .md file below its front-matter):</label>
+    <textarea id="out" readonly></textarea>
+  </section>
+
+  <section class="card">
+    <h3>Tips</h3>
+    <ul>
+      <li>Copy columns from the PDF or open the PDF in Preview → “Copy Table” if available.</li>
+      <li>Set headers to match the section (e.g., <span class="mono">Code, Make/Model, kW, Price, LeadTime</span>).</li>
+      <li>Keep prices as numbers (no £); add brand in front-matter for flues to auto-tag rows.</li>
+    </ul>
+  </section>
+</main>
+<script>
+  const $ = (id)=>document.getElementById(id);
+  function detectDelim(text){
+    const hasTab = /\t/.test(text);
+    if(hasTab) return '\\t';
+    const comma = (text.match(/,/g)||[]).length;
+    const pipe  = (text.match(/\|/g)||[]).length;
+    if (pipe>comma && pipe>0) return '\\|';
+    if (comma>0) return ',';
+    return 'space';
+  }
+  function splitRow(line, delim){
+    if (delim==='\\t') return line.split('\\t');
+    if (delim===',') return line.split(',');
+    if (delim==='\\|') return line.split('|');
+    if (delim==='space') return line.trim().split(/\s{2,}/);
+    return line.split('\\t');
+  }
+  function toMdTable(headers, rows){
+    const H = headers.map(h=>h.trim());
+    const head = '| ' + H.join(' | ') + ' |';
+    const sep  = '|' + H.map(()=> '---').join('|') + '|';
+    const body = rows.map(r=>{
+      const cells = H.map((_,i)=> (r[i]??'').toString().trim().replace(/\|/g,'\\|'));
+      return '| ' + cells.join(' | ') + ' |';
+    }).join('\n');
+    return head+'\n'+sep+'\n'+body+'\n';
+  }
+  $('convertBtn').onclick = ()=>{
+    const headers = $('headers').value.split(',').map(s=>s.trim()).filter(Boolean);
+    const raw = $('raw').value.trim().replace(/\r/g,'');
+    if(!raw){ $('status').textContent='Paste some rows first.'; $('status').className='warn'; return; }
+    const delimSel = $('delim').value;
+    const delim = (delimSel==='auto') ? detectDelim(raw) : (delimSel==='tab'?'\\t':delimSel);
+    const lines = raw.split('\n').filter(Boolean);
+    const rows = lines.map(line=> splitRow(line, delim));
+    $('out').value = toMdTable(headers, rows);
+    $('status').textContent = `Converted ${rows.length} rows using ${delimSel==='auto'?'auto→':''}${delim}.`;
+    $('status').className='ok';
+  };
+  $('downloadBtn').onclick = ()=>{
+    const tgt = $('target').value;
+    const md = '\n' + $('out').value;
+    const blob = new Blob([md], {type:'text/markdown'});
+    const a = document.createElement('a');
+    const name = tgt.split('/').pop().replace('.md','') + '-append.md';
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+</script>
+</body>
+</html>
