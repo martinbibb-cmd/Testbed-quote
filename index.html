@@ -2,68 +2,238 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Pricebook (Markdown-backed)</title>
+  <title>Pricebook Navigator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    html, body { margin:0; padding:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
-    header { position:sticky; top:0; background:#111; color:#fff; padding:12px 16px; z-index:10; }
-    main { padding: 16px; display:grid; gap:16px; grid-template-columns: 1fr; }
-    .bar { font-size:12px; opacity:0.85; }
-    .grid { display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
-    .card { border:1px solid #ddd; border-radius:10px; padding:12px; background:#fff; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
-    h2, h3 { margin:8px 0; }
-    table { width:100%; border-collapse:collapse; font-size:14px; }
-    th, td { border-bottom:1px solid #eee; padding:6px 8px; text-align:left; }
-    th { background:#fafafa; position:sticky; top:0; }
-    .controls { display:flex; gap:8px; flex-wrap:wrap; margin:8px 0 0; }
-    button { cursor:pointer; border:1px solid #ccc; background:#f7f7f7; padding:6px 10px; border-radius:8px; }
-    .tag { font-size:12px; padding:2px 6px; border-radius:6px; background:#eef; border:1px solid #ccd; }
-    .tiny { font-size:12px; opacity:.8; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-    .sticky-actions { position:sticky; bottom:0; background:linear-gradient(180deg, rgba(255,255,255,0), #fff 40%); padding:10px 0 0; }
-    textarea { width:100%; min-height:120px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    :root {
+      color-scheme: light dark;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f4f5f8;
+      color: #111;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      background: #1f2933;
+      color: #fff;
+      padding: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      letter-spacing: 0.02em;
+    }
+    main {
+      flex: 1;
+      width: min(100%, 960px);
+      margin: 0 auto;
+      padding: 24px 16px 120px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    button {
+      cursor: pointer;
+      border-radius: 999px;
+      border: none;
+      padding: 10px 18px;
+      font-weight: 600;
+      background: #2563eb;
+      color: #fff;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+      box-shadow: 0 6px 18px rgba(37, 99, 235, 0.24);
+    }
+    button.secondary {
+      background: rgba(255, 255, 255, 0.22);
+      color: inherit;
+      box-shadow: none;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(4px);
+    }
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+      box-shadow: none;
+    }
+    .panel {
+      background: #fff;
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+    }
+    .panel h2 {
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-size: 1.5rem;
+    }
+    .breadcrumb {
+      font-size: 0.95rem;
+      color: #4b5563;
+    }
+    .tile-grid {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      margin-top: 16px;
+    }
+    .tile-button {
+      background: #fff;
+      border: 2px solid transparent;
+      border-radius: 28px;
+      padding: 32px 24px;
+      min-height: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 1.25rem;
+      font-weight: 600;
+      position: relative;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border 0.2s ease;
+      box-shadow: 0 25px 50px rgba(15, 23, 42, 0.1);
+      color: inherit;
+    }
+    .tile-button:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 30px 60px rgba(15, 23, 42, 0.16);
+      border-color: rgba(37, 99, 235, 0.45);
+    }
+    .tile-button.completed::after {
+      content: "\2713";
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: #10b981;
+      color: #fff;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      box-shadow: 0 10px 20px rgba(16, 185, 129, 0.35);
+    }
+    .detail {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .detail-meta {
+      font-size: 0.95rem;
+      color: #4b5563;
+    }
+    .detail-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+      background: #fff;
+      border-radius: 18px;
+      overflow: hidden;
+    }
+    thead {
+      background: #f9fafb;
+    }
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+    }
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+    footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(180deg, rgba(244,245,248,0.25) 0%, #f4f5f8 40%);
+      padding: 18px 16px 24px;
+      border-top: 1px solid rgba(148, 163, 184, 0.35);
+      font-size: 0.95rem;
+    }
+    footer strong {
+      display: block;
+      margin-bottom: 8px;
+    }
+    footer ol {
+      margin: 8px 0 0;
+      padding-left: 18px;
+    }
+    footer li + li {
+      margin-top: 4px;
+    }
+    @media (prefers-color-scheme: dark) {
+      body { background: #0f172a; color: #f8fafc; }
+      .panel { background: rgba(15, 23, 42, 0.8); box-shadow: 0 24px 60px rgba(2, 6, 23, 0.55); }
+      .tile-button { background: rgba(15, 23, 42, 0.8); color: #f8fafc; box-shadow: 0 30px 60px rgba(2, 6, 23, 0.6); }
+      .tile-button:hover { border-color: rgba(165, 180, 252, 0.45); }
+      table { background: rgba(15, 23, 42, 0.85); }
+      thead { background: rgba(30, 41, 59, 0.9); }
+      th, td { border-bottom: 1px solid rgba(148, 163, 184, 0.25); }
+      footer { background: linear-gradient(180deg, rgba(15, 23, 42, 0) 0%, rgba(15, 23, 42, 0.9) 55%); border-top-color: rgba(148, 163, 184, 0.2); }
+    }
   </style>
 </head>
 <body>
   <header>
-    <div><strong>Pricebook</strong> — Markdown → JSON loader</div>
-    <div class="bar" id="banner">Loading…</div>
+    <div>
+      <h1>Pricebook Navigator</h1>
+      <div id="banner" class="breadcrumb">Loading data…</div>
+    </div>
+    <div class="controls">
+      <button id="backBtn" class="secondary" disabled>Back</button>
+      <button id="resetBtn" class="secondary">Reset Progress</button>
+      <button id="reloadBtn">Reload</button>
+    </div>
   </header>
   <main>
-    <section class="card">
-      <h2>Sections</h2>
-      <div class="controls">
-        <button id="refreshBtn" title="Reload markdown files">Reload</button>
-        <button id="exportJsonBtn" title="Download compiled JSON">Export JSON</button>
-        <span class="tag" id="lastRefreshedTag">last_refreshed: –</span>
-      </div>
-      <div class="tiny">Add or edit files in <span class="mono">/pricebook-md/</span>; changes appear on reload.</div>
-    </section>
-
-    <section class="grid" id="sectionsGrid"></section>
-
-    <section class="card sticky-actions">
-      <h3>API Cheatsheet</h3>
-      <div class="tiny mono">window.Pricebook.getItemsByCode("CBLR3453")</div>
-      <div class="tiny mono">window.Pricebook.matchFlueBrand("Worcester")</div>
-      <div class="tiny mono">window.Pricebook.data // compiled JSON</div>
-      <div class="controls">
-        <button id="copyApiBtn">Copy API Example</button>
-      </div>
-      <textarea id="apiBox" readonly></textarea>
+    <section class="panel">
+      <div class="breadcrumb" id="breadcrumb">Root</div>
+      <div id="view"></div>
     </section>
   </main>
+  <footer>
+    <strong>Running log</strong>
+    <div id="logCurrent">Current path: Root</div>
+    <div>Completed choices:</div>
+    <ol id="logHistory"></ol>
+  </footer>
 
   <script type="module">
     import { PricebookLoader } from "./js/pricebook-loader.js";
 
     const banner = document.getElementById('banner');
-    const grid = document.getElementById('sectionsGrid');
-    const lastTag = document.getElementById('lastRefreshedTag');
-    const refreshBtn = document.getElementById('refreshBtn');
-    const exportBtn = document.getElementById('exportJsonBtn');
-    const apiBox = document.getElementById('apiBox');
-    const copyApiBtn = document.getElementById('copyApiBtn');
+    const breadcrumb = document.getElementById('breadcrumb');
+    const view = document.getElementById('view');
+    const backBtn = document.getElementById('backBtn');
+    const reloadBtn = document.getElementById('reloadBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const logCurrent = document.getElementById('logCurrent');
+    const logHistory = document.getElementById('logHistory');
 
     const manifest = [
       "./pricebook-md/core-packs.md",
@@ -77,51 +247,227 @@
 
     const loader = new PricebookLoader({ manifest });
 
-    async function render() {
-      banner.textContent = "Loading markdown and compiling…";
+    const state = {
+      tree: null,
+      currentPath: [],
+      completedLeaves: new Set(),
+      logEntries: []
+    };
+
+    async function initialize() {
+      banner.textContent = 'Loading markdown…';
       await loader.loadAll();
-      banner.textContent = `Loaded ${loader.data.sections.length} sections, ${loader.data.items.length} items.`;
-      lastTag.textContent = "last_refreshed: " + (loader.data.meta.last_refreshed || "–");
-
-      if (!loader.data.sections.length) {
-        grid.innerHTML = '<div class="card"><strong>No sections loaded.</strong><div class="tiny">Check that <span class="mono">/pricebook-md/</span> files exist and paths are correct. Use <a href="capture.html">Pricebook Capture</a> to build tables quickly.</div></div>';
-      } else {
-        grid.innerHTML = "";
-        for (const sec of loader.data.sections) {
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.innerHTML = `
-            <h3>${sec.title || sec.id}</h3>
-            <div class="tiny mono">${sec.id}</div>
-            ${sec.notes ? `<div class="tiny">${sec.notes}</div>` : ""}
-            <div class="tiny">Items: ${sec.rows.length}</div>
-            <div style="overflow:auto; max-height:340px; margin-top:8px;">
-              ${tableHtml(sec.headers, sec.rows)}
-            </div>
-          `;
-          grid.appendChild(card);
-        }
-      }
-
-      apiBox.value =
-`// Example:
-const ri12 = window.Pricebook.getItemsByCode("CBLR3453");
-const worcesterFlues = window.Pricebook.matchFlueBrand("Worcester");
-console.log({ ri12, worcesterFlues, all: window.Pricebook.data });`;
-      // Expose API
-      window.Pricebook = {
-        data: loader.data,
-        getItemsByCode: (code) => loader.data.items.filter(x => (x.Code||x.code) === code),
-        matchFlueBrand: (brand) => loader.data.items.filter(x => (x.brand||"").toLowerCase() === brand.toLowerCase()),
-      };
+      banner.textContent = `Loaded ${loader.data.sections.length} sections.`;
+      state.tree = buildTree(loader.data.sections);
+      state.completedLeaves.clear();
+      state.logEntries = [];
+      state.currentPath = [];
+      render();
     }
 
+    function buildTree(sections) {
+      const root = {
+        type: 'dir',
+        label: 'Root',
+        segment: null,
+        path: [],
+        children: new Map()
+      };
+      for (const sec of sections) {
+        if (!sec.path) continue;
+        const cleanPath = sec.path.replace(/^\.\//, '').replace(/^pricebook-md\//, 'pricebook-md/');
+        const relPath = cleanPath.replace(/^pricebook-md\//, '');
+        const segments = relPath.split('/');
+        let node = root;
+        const builtPath = [];
+        for (let i = 0; i < segments.length; i++) {
+          const seg = segments[i];
+          const isLeaf = i === segments.length - 1;
+          builtPath.push(seg);
+          if (!node.children.has(seg)) {
+            node.children.set(seg, {
+              type: isLeaf ? 'file' : 'dir',
+              label: isLeaf ? (sec.title || sec.id) : formatDirLabel(seg),
+              segment: seg,
+              path: [...builtPath],
+              children: isLeaf ? null : new Map(),
+              section: isLeaf ? sec : null
+            });
+          }
+          node = node.children.get(seg);
+          if (isLeaf) {
+            node.section = sec;
+            node.label = sec.title || sec.id;
+          }
+        }
+      }
+      return root;
+    }
+
+    function render() {
+      const node = getNode(state.currentPath);
+      breadcrumb.textContent = state.currentPath.length ? getPathLabels(state.currentPath) : 'Root';
+      backBtn.disabled = state.currentPath.length === 0;
+      updateLog();
+
+      if (!node) {
+        view.innerHTML = '<p>Nothing to display.</p>';
+        return;
+      }
+
+      if (node.type === 'dir') {
+        renderDirectory(node);
+      } else {
+        renderLeaf(node);
+      }
+    }
+
+    function renderDirectory(node) {
+      if (!node.children || node.children.size === 0) {
+        view.innerHTML = '<p>This folder is empty.</p>';
+        return;
+      }
+      const grid = document.createElement('div');
+      grid.className = 'tile-grid';
+      for (const child of node.children.values()) {
+        const tile = document.createElement('button');
+        tile.className = 'tile-button';
+        if (isNodeCompleted(child)) tile.classList.add('completed');
+        tile.textContent = child.label;
+        tile.addEventListener('click', () => {
+          state.currentPath = child.path.slice();
+          render();
+        });
+        grid.appendChild(tile);
+      }
+      view.innerHTML = '';
+      view.appendChild(grid);
+    }
+
+    function renderLeaf(node) {
+      const sec = node.section;
+      const wrapper = document.createElement('div');
+      wrapper.className = 'detail';
+      const title = document.createElement('h2');
+      title.textContent = sec.title || sec.id;
+      const meta = document.createElement('div');
+      meta.className = 'detail-meta';
+      const notes = sec.notes ? `<div>${escapeHtml(sec.notes)}</div>` : '';
+      meta.innerHTML = `Source file: <span class="breadcrumb">${escapeHtml(sec.path.replace(/^\.\//, ''))}</span>${notes}`;
+      wrapper.append(title, meta);
+
+      if (sec.headers.length && sec.rows.length) {
+        const tableWrap = document.createElement('div');
+        tableWrap.innerHTML = tableHtml(sec.headers, sec.rows);
+        wrapper.appendChild(tableWrap);
+      }
+
+      const actions = document.createElement('div');
+      actions.className = 'detail-actions';
+      const completeBtn = document.createElement('button');
+      completeBtn.textContent = 'Mark Offer Done';
+      completeBtn.addEventListener('click', () => {
+        const key = node.path.join('/');
+        state.completedLeaves.add(key);
+        appendHistoryEntry(node);
+        state.currentPath = [];
+        render();
+      });
+      const backToRootBtn = document.createElement('button');
+      backToRootBtn.textContent = 'Back to Root';
+      backToRootBtn.className = 'secondary';
+      backToRootBtn.addEventListener('click', () => {
+        state.currentPath = [];
+        render();
+      });
+      actions.append(completeBtn, backToRootBtn);
+      wrapper.appendChild(actions);
+
+      view.innerHTML = '';
+      view.appendChild(wrapper);
+    }
+
+    function getNode(pathSegments) {
+      let node = state.tree;
+      if (!node) return null;
+      for (const seg of pathSegments) {
+        if (!node.children || !node.children.has(seg)) return null;
+        node = node.children.get(seg);
+      }
+      return node;
+    }
+
+    function getPathLabels(pathSegments) {
+      const labels = [];
+      let node = state.tree;
+      for (const seg of pathSegments) {
+        if (!node.children || !node.children.has(seg)) break;
+        node = node.children.get(seg);
+        labels.push(node.label);
+      }
+      return labels.join(' › ');
+    }
+
+    function isNodeCompleted(node) {
+      if (node.type === 'file') {
+        return state.completedLeaves.has(node.path.join('/'));
+      }
+      if (!node.children || node.children.size === 0) return false;
+      for (const child of node.children.values()) {
+        if (!isNodeCompleted(child)) return false;
+      }
+      return true;
+    }
+
+    function appendHistoryEntry(node) {
+      const labels = getPathLabels(node.path);
+      const filePath = node.section?.path?.replace(/^\.\//, '') || '';
+      state.logEntries.push(`${labels} (${filePath})`);
+      updateLog();
+    }
+
+    function updateLog() {
+      logCurrent.textContent = `Current path: ${state.currentPath.length ? getPathLabels(state.currentPath) : 'Root'}`;
+      logHistory.innerHTML = '';
+      if (!state.logEntries.length) {
+        const item = document.createElement('li');
+        item.textContent = 'No offers completed yet.';
+        logHistory.appendChild(item);
+        return;
+      }
+      for (const entry of state.logEntries) {
+        const item = document.createElement('li');
+        item.textContent = entry;
+        logHistory.appendChild(item);
+      }
+    }
+
+    backBtn.addEventListener('click', () => {
+      if (!state.currentPath.length) return;
+      state.currentPath = state.currentPath.slice(0, -1);
+      render();
+    });
+
+    reloadBtn.addEventListener('click', () => {
+      initialize();
+    });
+
+    resetBtn.addEventListener('click', () => {
+      state.completedLeaves.clear();
+      state.logEntries = [];
+      state.currentPath = [];
+      updateLog();
+      render();
+    });
+
+    initialize();
+
     function tableHtml(headers, rows) {
-      const h = headers.map(h => `<th>${escapeHtml(h)}</th>`).join("");
+      const h = headers.map(h => `<th>${escapeHtml(h)}</th>`).join('');
       const r = rows.map(row => {
-        const tds = headers.map(h => `<td>${escapeHtml(row[h] ?? "")}</td>`).join("");
+        const tds = headers.map(h => `<td>${escapeHtml(row[h] ?? '')}</td>`).join('');
         return `<tr>${tds}</tr>`;
-      }).join("");
+      }).join('');
       return `<table><thead><tr>${h}</tr></thead><tbody>${r}</tbody></table>`;
     }
 
@@ -129,21 +475,12 @@ console.log({ ri12, worcesterFlues, all: window.Pricebook.data });`;
       return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
     }
 
-    refreshBtn.addEventListener('click', render);
-    exportBtn.addEventListener('click', () => {
-      const blob = new Blob([JSON.stringify(loader.data, null, 2)], { type: 'application/json' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'pricebook-compiled.json';
-      a.click();
-      URL.revokeObjectURL(a.href);
-    });
-    copyApiBtn.addEventListener('click', async () => {
-      apiBox.select(); document.execCommand('copy');
-      copyApiBtn.textContent = "Copied!"; setTimeout(()=> copyApiBtn.textContent="Copy API Example", 1200);
-    });
-
-    render();
+    function formatDirLabel(segment) {
+      return segment
+        .replace(/\.[^.]+$/, '')
+        .replace(/[-_]+/g, ' ')
+        .replace(/\b\w/g, m => m.toUpperCase());
+    }
   </script>
 </body>
 </html>
