@@ -5,20 +5,56 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Testbed Quote — Home</title>
 <style>
-  :root{--bg:#0f1117;--panel:#161a22;--text:#e6e8ee;--muted:#9aa3b2;--accent:#7cd992;--line:#2a3140;--tile:#1a1f2b;--tileHover:#222937}
-  *{box-sizing:border-box}
-  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
-  header{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--line)}
-  h1{font-size:18px;margin:0}
-  .btn{background:var(--panel);border:1px solid var(--line);color:var(--text);padding:8px 12px;border-radius:10px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
-  .btn:hover{border-color:var(--accent)}
-  main{max-width:1000px;margin:0 auto;padding:16px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
-  .tile{display:flex;flex-direction:column;gap:6px;background:var(--tile);border:1px solid var(--line);border-radius:14px;padding:14px;min-height:96px;text-decoration:none;color:var(--text)}
-  .tile:hover{background:var(--tileHover);border-color:var(--accent)}
-  .title{font-weight:600}
-  .desc{color:var(--muted);font-size:12px}
-  .muted{color:var(--muted)}
+  :root {
+    --bg:#0f1117;
+    --panel:#161a22;
+    --text:#e6e8ee;
+    --muted:#9aa3b2;
+    --accent:#7cd992;
+    --accentBg:rgba(124,217,146,.16);
+    --line:#2a3140;
+    --tile:#1a1f2b;
+    --tileHover:#222937;
+  }
+  * { box-sizing:border-box; }
+  html,body { margin:0; padding:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif; }
+  a { color:inherit; }
+  header { display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; padding:12px 14px; border-bottom:1px solid var(--line); }
+  h1 { font-size:18px; margin:0; }
+  .btn { background:var(--panel); border:1px solid var(--line); color:var(--text); padding:8px 12px; border-radius:10px; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font:inherit; }
+  .btn:hover { border-color:var(--accent); }
+  .btn:disabled { opacity:.5; cursor:not-allowed; }
+  .btn--ghost { background:transparent; }
+  main { max-width:1100px; margin:0 auto; padding:20px 16px 40px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px; }
+  .tile { display:flex; flex-direction:column; gap:6px; background:var(--tile); border:1px solid var(--line); border-radius:14px; padding:16px; min-height:110px; text-align:left; color:var(--text); transition:background .2s,border-color .2s,box-shadow .2s; }
+  .tile:hover { background:var(--tileHover); border-color:var(--accent); }
+  .tile:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .tile-button { border:none; cursor:pointer; font:inherit; width:100%; padding:0; }
+  .tile .title { font-weight:600; display:flex; align-items:center; gap:8px; }
+  .tile .desc { color:var(--muted); font-size:12px; line-height:1.5; }
+  .tile.complete { border-color:var(--accent); background:var(--accentBg); box-shadow:0 0 0 1px rgba(124,217,146,.2); }
+  .tile.complete .status-icon { display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:999px; background:var(--accent); color:#0f1117; font-size:12px; font-weight:700; }
+  .tile.complete .desc { color:var(--text); }
+  .muted { color:var(--muted); }
+  .modal { position:fixed; inset:0; display:none; }
+  .modal.open { display:flex; }
+  .modal__backdrop { position:absolute; inset:0; background:rgba(10,12,18,.72); backdrop-filter:blur(2px); }
+  .modal__dialog { position:relative; margin:auto; width:min(720px, calc(100% - 32px)); max-height:calc(100% - 80px); background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:20px; display:flex; flex-direction:column; gap:16px; box-shadow:0 24px 48px rgba(0,0,0,.45); }
+  .modal__title { font-size:18px; font-weight:600; }
+  .modal__header { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+  .breadcrumb { font-size:13px; color:var(--muted); display:flex; flex-wrap:wrap; gap:6px; }
+  .breadcrumb span::after { content:'›'; margin:0 4px; opacity:.6; }
+  .breadcrumb span:last-child::after { content:''; }
+  .modal__grid { flex:1; overflow:auto; padding-right:4px; }
+  .modal__footer { display:flex; align-items:center; gap:12px; }
+  .modal__spacer { flex:1; }
+  .empty-state { padding:24px; text-align:center; color:var(--muted); border:1px dashed var(--line); border-radius:12px; background:rgba(21,26,35,.6); }
+  @media (max-width:640px) {
+    .modal__dialog { width:calc(100% - 24px); margin:auto 12px; padding:16px; }
+    header { padding:12px; }
+    main { padding:16px 12px 32px; }
+  }
 </style>
 </head>
 <body>
@@ -33,28 +69,202 @@
 </header>
 
 <main>
-  <p class="muted">Choose a section to collect data. Tiles below are read from <code>data/tiles.json</code>.</p>
+  <p class="muted">Choose a section to collect data. Tiles below are read live from <code>data/opml/survey.opml</code>.</p>
   <div id="tiles" class="grid"></div>
   <div id="error" class="muted" style="margin-top:12px"></div>
 </main>
+
+<div id="modal" class="modal" aria-hidden="true">
+  <div class="modal__backdrop" data-close></div>
+  <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal__header">
+      <div id="modalTitle" class="modal__title"></div>
+      <button id="closeModal" class="btn btn--ghost" type="button">Close</button>
+    </div>
+    <div id="breadcrumb" class="breadcrumb"></div>
+    <div id="branchTiles" class="grid modal__grid"></div>
+    <div class="modal__footer">
+      <button id="backBtn" class="btn btn--ghost" type="button">Back</button>
+      <div class="modal__spacer"></div>
+      <button id="doneBtn" class="btn" type="button" disabled>Done</button>
+    </div>
+  </div>
+</div>
 
 <script>
 (async function(){
   const tilesEl = document.getElementById('tiles');
   const errEl = document.getElementById('error');
-  try{
-    const res = await fetch('./data/tiles.json', {cache:'no-store'});
-    if(!res.ok) throw new Error(res.status+' '+res.statusText);
-    const json = await res.json();
-    (json.tiles||[]).forEach(t=>{
-      const a = document.createElement('a');
-      a.className = 'tile';
-      a.href = t.href || ('index2.html?tree='+encodeURIComponent(t.id));
-      a.innerHTML = `<div class="title">${t.title||t.id}</div>${t.desc?`<div class="desc">${t.desc}</div>`:''}`;
-      tilesEl.appendChild(a);
+  const modal = document.getElementById('modal');
+  const modalTitle = document.getElementById('modalTitle');
+  const branchTiles = document.getElementById('branchTiles');
+  const breadcrumbEl = document.getElementById('breadcrumb');
+  const backBtn = document.getElementById('backBtn');
+  const doneBtn = document.getElementById('doneBtn');
+  const closeBtn = document.getElementById('closeModal');
+
+  const state = { trees: [], selections: {} };
+  let activeTree = null;
+  let stack = [];
+
+  function slugify(str, fallback){
+    const slug = str.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+    return slug || fallback;
+  }
+
+  function parseOutline(node, indexPath){
+    const text = (node.getAttribute('text') || '').trim();
+    const children = Array.from(node.children || []).filter(child => child.tagName && child.tagName.toLowerCase() === 'outline');
+    const parsedChildren = children.map((child, idx) => parseOutline(child, indexPath.concat(idx)));
+    return {
+      id: indexPath.join('-'),
+      text,
+      children: parsedChildren.filter(child => child.text)
+    };
+  }
+
+  function setModalOpen(open){
+    modal.classList.toggle('open', open);
+    modal.setAttribute('aria-hidden', String(!open));
+    document.body.style.overflow = open ? 'hidden' : '';
+  }
+
+  function renderRootTiles(){
+    tilesEl.innerHTML = '';
+    state.trees.forEach((tree, idx) => {
+      const selection = state.selections[tree.uid];
+      const tileBtn = document.createElement('button');
+      tileBtn.type = 'button';
+      tileBtn.className = 'tile tile-button' + (selection ? ' complete' : '');
+      const statusIcon = selection ? '<span class="status-icon">✓</span>' : '';
+      const desc = selection ? `Selected: ${selection.path.join(' › ')}` : 'Tap to choose an option.';
+      tileBtn.innerHTML = `<div class="title">${statusIcon}<span>${tree.text}</span></div><div class="desc">${desc}</div>`;
+      tileBtn.addEventListener('click', () => openTree(tree));
+      tilesEl.appendChild(tileBtn);
     });
-  }catch(e){
-    errEl.textContent = 'Failed to load tiles.json: ' + e.message;
+  }
+
+  function updateBreadcrumb(){
+    breadcrumbEl.innerHTML = '';
+    stack.forEach((node, idx) => {
+      const span = document.createElement('span');
+      span.textContent = node.text || (idx === 0 ? 'Root' : '');
+      breadcrumbEl.appendChild(span);
+    });
+  }
+
+  function renderBranchTiles(){
+    branchTiles.innerHTML = '';
+    const current = stack[stack.length - 1];
+    const children = current.children || [];
+
+    if(children.length === 0){
+      const empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.textContent = 'No further branches. Confirm to finish.';
+      branchTiles.appendChild(empty);
+    } else {
+      children.forEach(child => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'tile tile-button';
+        const hasChildren = child.children && child.children.length > 0;
+        const subtitle = hasChildren ? 'Show more options' : 'Mark as selection';
+        btn.innerHTML = `<div class="title"><span>${child.text}</span></div><div class="desc">${subtitle}</div>`;
+        btn.addEventListener('click', () => {
+          stack.push(child);
+          updateModal();
+        });
+        branchTiles.appendChild(btn);
+      });
+    }
+
+    backBtn.disabled = stack.length <= 1;
+    const canComplete = stack.length > 1 && children.length === 0;
+    doneBtn.disabled = !canComplete;
+  }
+
+  function updateModal(){
+    if(!activeTree) return;
+    modalTitle.textContent = activeTree.text;
+    updateBreadcrumb();
+    renderBranchTiles();
+  }
+
+  function openTree(tree){
+    activeTree = tree;
+    stack = [tree];
+    const previous = state.selections[tree.uid];
+    if(previous && previous.path.length){
+      let cursor = tree;
+      previous.path.forEach(part => {
+        const next = (cursor.children || []).find(child => child.text === part);
+        if(next){
+          stack.push(next);
+          cursor = next;
+        }
+      });
+    }
+    setModalOpen(true);
+    updateModal();
+  }
+
+  function closeModal(){
+    activeTree = null;
+    stack = [];
+    setModalOpen(false);
+  }
+
+  backBtn.addEventListener('click', () => {
+    if(stack.length > 1){
+      stack.pop();
+      updateModal();
+    } else {
+      closeModal();
+    }
+  });
+
+  doneBtn.addEventListener('click', () => {
+    if(!activeTree) return;
+    const selectionPath = stack.slice(1).map(node => node.text).filter(Boolean);
+    if(selectionPath.length === 0) return;
+    state.selections[activeTree.uid] = { path: selectionPath };
+    closeModal();
+    renderRootTiles();
+  });
+
+  closeBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', evt => {
+    if(evt.target && evt.target.hasAttribute && evt.target.hasAttribute('data-close')){
+      closeModal();
+    }
+  });
+  document.addEventListener('keydown', evt => {
+    if(evt.key === 'Escape' && modal.classList.contains('open')){
+      closeModal();
+    }
+  });
+
+  try {
+    const res = await fetch('./data/opml/survey.opml', { cache: 'no-store' });
+    if(!res.ok) throw new Error(res.status + ' ' + res.statusText);
+    const xmlText = await res.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xmlText, 'text/xml');
+    const outlines = Array.from(doc.querySelectorAll('body > outline'));
+    state.trees = outlines
+      .map((outline, idx) => {
+        const parsed = parseOutline(outline, [idx]);
+        return Object.assign(parsed, { uid: slugify(parsed.text || 'tree', 'tree-' + idx) + '-' + idx });
+      })
+      .filter(tree => tree.text);
+    if(state.trees.length === 0){
+      throw new Error('No tiles found in OPML file');
+    }
+    renderRootTiles();
+  } catch (error) {
+    console.error(error);
+    errEl.textContent = 'Failed to load survey data: ' + error.message;
   }
 })();
 </script>
