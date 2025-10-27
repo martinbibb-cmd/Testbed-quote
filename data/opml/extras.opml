@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<opml version="1.0">
+  <head>
+    <title>Extras</title>
+  </head>
+  <body>
+    <outline text="Extras">
+      <outline text="Mag filter (1)"/>
+      <outline text="Scale reducer (2)"/>
+      <outline text="Condensate upgrade 42mm (3)"/>
+      <outline text="Plume kit (4)"/>
+    </outline>
+  </body>
+</opml>
