@@ -66,18 +66,13 @@
     const copyApiBtn = document.getElementById('copyApiBtn');
 
     const manifest = [
-      // Core
-      "pricebook-md/core-packs.md",
-      // Boilers
-      "pricebook-md/boilers/regular-ng.md",
-      "pricebook-md/boilers/combi-ng.md",
-      "pricebook-md/boilers/combi-lpg.md",
-      // Flues
-      "pricebook-md/flues/worcester.md",
-      // Controls
-      "pricebook-md/controls/wiring-packs.md",
-      // Condensate
-      "pricebook-md/condensate.md"
+      "./pricebook-md/core-packs.md",
+      "./pricebook-md/boilers/regular-ng.md",
+      "./pricebook-md/boilers/combi-ng.md",
+      "./pricebook-md/boilers/combi-lpg.md",
+      "./pricebook-md/flues/worcester.md",
+      "./pricebook-md/controls/wiring-packs.md",
+      "./pricebook-md/condensate.md"
     ];
 
     const loader = new PricebookLoader({ manifest });
@@ -88,20 +83,24 @@
       banner.textContent = `Loaded ${loader.data.sections.length} sections, ${loader.data.items.length} items.`;
       lastTag.textContent = "last_refreshed: " + (loader.data.meta.last_refreshed || "–");
 
-      grid.innerHTML = "";
-      for (const sec of loader.data.sections) {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-          <h3>${sec.title || sec.id}</h3>
-          <div class="tiny mono">${sec.id}</div>
-          ${sec.notes ? `<div class="tiny">${sec.notes}</div>` : ""}
-          <div class="tiny">Items: ${sec.rows.length}</div>
-          <div style="overflow:auto; max-height:340px; margin-top:8px;">
-            ${tableHtml(sec.headers, sec.rows)}
-          </div>
-        `;
-        grid.appendChild(card);
+      if (!loader.data.sections.length) {
+        grid.innerHTML = '<div class="card"><strong>No sections loaded.</strong><div class="tiny">Check that <span class="mono">/pricebook-md/</span> files exist and paths are correct. Use <a href="capture.html">Pricebook Capture</a> to build tables quickly.</div></div>';
+      } else {
+        grid.innerHTML = "";
+        for (const sec of loader.data.sections) {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            <h3>${sec.title || sec.id}</h3>
+            <div class="tiny mono">${sec.id}</div>
+            ${sec.notes ? `<div class="tiny">${sec.notes}</div>` : ""}
+            <div class="tiny">Items: ${sec.rows.length}</div>
+            <div style="overflow:auto; max-height:340px; margin-top:8px;">
+              ${tableHtml(sec.headers, sec.rows)}
+            </div>
+          `;
+          grid.appendChild(card);
+        }
       }
 
       apiBox.value =

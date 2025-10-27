@@ -16,3 +16,10 @@ Author sections as Markdown with a small YAML front-matter block. Each file’s 
 
 ## Tables
 Use GitHub-flavored pipe tables. First table in the file becomes the primary data table:
+
+## Capture workflow
+1. Open `capture.html`.
+2. Pick the target `.md` file (or create a new one in `/pricebook-md/…`).
+3. Paste table rows copied from the PDF/CSV.
+4. Adjust headers if needed and **Convert → Markdown**.
+5. Copy the output table into the target `.md` file (below front-matter), commit, then reload `index.html`.
