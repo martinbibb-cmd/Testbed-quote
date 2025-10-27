@@ -16,6 +16,7 @@ export class PricebookLoader {
     for (const path of this.manifest) {
       const text = await this.#fetchText(path);
       const sec = this.#parseSectionMd(text, path);
+      sec.path = path;
       sections.push(sec);
 
       // Promote per-row brand for flues (from front-matter)
