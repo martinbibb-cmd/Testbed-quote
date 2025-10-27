@@ -1,9 +1,18 @@
-# Testbed-quote
+# Pricebook (Markdown-backed)
 
-Test bed for tree type quote picker.
+Author sections as Markdown with a small YAML front-matter block. Each file’s first pipe-table is compiled into JSON for use in the UI and pricing logic.
 
-## Data source
+## Structure
+- `/pricebook-md/**.md` — authoring files
+- `/js/pricebook-loader.js` — zero-dep parser & loader
+- `index.html` — demo UI + JSON export
 
-Survey tiles are now read directly from [`data/opml/survey.opml`](data/opml/survey.opml).
-Edit that OPML file to change the available tiles and branches; the home screen and modal UI
-will update automatically when the file changes.
+## Front-matter fields
+- `section` (string): display section title
+- `id` (string): unique id (fallback derived from path)
+- `last_refreshed` (YYYY-MM-DD): surfaced in banner
+- `notes` (string): shown under section header
+- Optional vendor context (e.g. `brand: Worcester`) is copied to each row
+
+## Tables
+Use GitHub-flavored pipe tables. First table in the file becomes the primary data table:
