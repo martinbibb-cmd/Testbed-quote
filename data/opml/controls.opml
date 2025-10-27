@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<opml version="1.0">
+  <head>
+    <title>Controls</title>
+  </head>
+  <body>
+    <outline text="Controls (C)">
+      <outline text="Hive Mini (1)"/>
+      <outline text="Hive Multizone (2)"/>
+      <outline text="OpenTherm (3)"/>
+      <outline text="Weather comp (4)"/>
+    </outline>
+  </body>
+</opml>
